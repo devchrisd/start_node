@@ -18,29 +18,13 @@ function start(response, request) {
     var absPath = "./" + filePath;
     console.log("Load " + absPath);
 
-    serverWorking(response, absPath);
+    sendContent(response, absPath);
 }
 
 function upload(response) {
   console.log("Request handler 'upload' was called.");
 
-  var body = '<html>'+
-    '<head>'+
-    '<meta http-equiv="Content-Type" '+
-    'content="text/html; charset=UTF-8" />'+
-    '</head>'+
-    '<body>'+
-    '<form action="/submit_upload" enctype="multipart/form-data" '+
-    'method="post">'+
-    '<input type="file" name="upload" multiple="multiple">'+
-    '<input type="submit" value="Upload file" />'+
-    '</form>'+
-    '</body>'+
-    '</html>';
-
-    response.writeHead(200, {"Content-Type": "text/html"});
-    response.write(body);
-    response.end();
+  sendContent(response, 'public/upload.html');
 }
 
 function submit_upload(response, request) {
@@ -49,27 +33,20 @@ function submit_upload(response, request) {
   var form = new formidable.IncomingForm();
   console.log("about to parse");
   form.parse(request, function(error, fields, files) {
-    console.log("parsing done");
+    console.log("parsing done. files.upload.path = " + files.upload.path);
 
+    uploadPath = "/tmp/test.png";
     /* Possible error on Windows systems:
        tried to rename to an already existing file */
-    fs.rename(files.upload.path, "/tmp/test.png", function(err) {
+    fs.rename(files.upload.path, uploadPath, function(err) {
       if (err) {
-        fs.unlink("/tmp/test.png");
-        fs.rename(files.upload.path, "/tmp/test.png");
+        fs.unlink(uploadPath);
+        fs.rename(files.upload.path, uploadPath);
       }
     });
-    response.writeHead(200, {"Content-Type": "text/html"});
-    response.write("received image:<br/>");
-    response.write("<img src='/show' />");
-    response.end();
-  });
-}
 
-function show(response) {
-  console.log("Request handler 'show' was called.");
-  response.writeHead(200, {"Content-Type": "image/png"});
-  fs.createReadStream("/tmp/test.png").pipe(response);
+    sendContent(response, uploadPath);
+  });
 }
 
 function send404(response) {
@@ -78,19 +55,19 @@ function send404(response) {
   response.end();
 }
 
-function sendPage(response, filePath, fileContents) {
+function showPage(response, filePath, fileContents) {
   response.writeHead(200, {"Content-type" : mime.lookup(path.basename(filePath))});
   response.end(fileContents);
 }
 
-function serverWorking(response, absPath) {
+function sendContent(response, absPath) {
   fs.exists(absPath, function(exists) {
     if (exists) {
       fs.readFile(absPath, function(err, data) {
         if (err) {
           send404(response)
         } else {
-          sendPage(response, absPath, data);
+          showPage(response, absPath, data);
         }
       });
     } else {
@@ -102,4 +79,3 @@ function serverWorking(response, absPath) {
 exports.start = start;
 exports.upload = upload;
 exports.submit_upload = submit_upload;
-exports.show = show;

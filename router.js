@@ -5,7 +5,6 @@ var handle = {};
 handle["/"]       = requestHandlers.start;
 handle["/start"]  = requestHandlers.start;
 handle["/upload"] = requestHandlers.upload;
-handle["/show"]   = requestHandlers.show;
 handle["/submit_upload"] = requestHandlers.submit_upload;
 
 function route(response, request) {

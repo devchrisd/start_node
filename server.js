@@ -8,7 +8,7 @@ function start(route) {
 
   server = http.createServer(onRequest)
   var port_number = server.listen(process.env.PORT || 3000);
-  console.log("Server has started. Listen on port :" + port_number);
+  console.log("Server has started. Listen on port :" + server.address().port);
 }
 
 exports.start = start;
